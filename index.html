@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123b55">
+<meta name="description" content="Clinician-facing antiseizure medication dose calculation prototype.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>NeuroDose | ASM Calculator</title>
+<style>
+:root{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17212b;background:#f3f6f8;--navy:#123b55;--teal:#087e8b;--line:#dbe3e8;--muted:#5d6b75;--card:#fff}
+*{box-sizing:border-box}body{margin:0}header{background:var(--navy);color:white;padding:20px max(18px,calc((100% - 920px)/2));padding-top:calc(18px + env(safe-area-inset-top));}
+header .brand{display:flex;gap:12px;align-items:center}header h1{font-size:1.35rem;margin:0}header p{margin:5px 0 0;color:#d6e6ed;font-size:.92rem}
+main{max-width:920px;margin:auto;padding:18px 14px 40px}.notice{background:#fff7e5;border:1px solid #f1d28b;border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:.9rem;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 2px 8px #122c3c08}.card h2{font-size:1.05rem;margin:0 0 14px}.field{margin:12px 0}.field label{display:block;font-weight:650;font-size:.88rem;margin-bottom:6px}input,select{width:100%;font:inherit;padding:11px 12px;border:1px solid #bdcbd3;border-radius:10px;background:white;color:#17212b;min-height:44px}input:focus,select:focus{outline:2px solid #70c8d0;outline-offset:1px}.radio-row{display:flex;gap:8px;flex-wrap:wrap}.radio-row label{border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-weight:500;display:flex;align-items:center;gap:7px}.radio-row input{width:auto;min-height:0}
+button{border:0;background:var(--teal);color:white;border-radius:11px;padding:12px 15px;font:inherit;font-weight:700;cursor:pointer;min-height:44px}button.secondary{background:#e9f0f3;color:#123b55}button:focus{outline:3px solid #83d5dc;outline-offset:2px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.results{display:none;margin-top:14px;background:#eef8f8;border:1px solid #b7dede;border-radius:13px;padding:15px}.results.show{display:block}.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.metric{background:white;border:1px solid #d2e8e8;border-radius:10px;padding:12px}.metric span{display:block;color:var(--muted);font-size:.8rem}.metric strong{display:block;font-size:1.25rem;margin-top:5px;overflow-wrap:anywhere}.alert{margin-top:12px;border-radius:9px;padding:10px;background:#fff1e9;border:1px solid #f0bda8;color:#7d2f16;font-size:.9rem}.small{font-size:.82rem;color:var(--muted);line-height:1.5}.pill{display:inline-block;background:#e4f3f4;color:#075b65;padding:4px 8px;border-radius:999px;font-size:.75rem;font-weight:700}.full{grid-column:1/-1}details summary{cursor:pointer;font-weight:700}footer{max-width:920px;margin:auto;padding:0 16px 28px;color:var(--muted);font-size:.8rem;line-height:1.5}
+@media(max-width:650px){.grid{grid-template-columns:1fr}main{padding:14px 12px 30px}.card{padding:15px}.result-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header><div class="brand"><svg width="42" height="42" viewBox="0 0 48 48" role="img" aria-label="NeuroDose logo"><rect width="48" height="48" rx="14" fill="#e4f3f4"/><path d="M12 25h7l4-10 6 19 4-9h4" fill="none" stroke="#087e8b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div><h1>NeuroDose</h1><p>Antiseizure medication calculator · Prototype</p></div></div></header>
+<main>
+<div class="notice"><strong>Clinical safety notice:</strong> This prototype performs arithmetic only. It does not recommend or validate a medication dose. Verify the indication, age-specific guidance, dose limits, formulation, renal/hepatic adjustments, interactions and current local protocol before prescribing. Do not use as the sole basis for emergency treatment.</div>
+<div class="grid">
+<section class="card">
+<h2>1 · Patient and medicine</h2>
+<div class="field"><label for="category">Patient group</label><select id="category"><option>Pediatric</option><option>Adult</option><option>Neonate</option></select></div>
+<div class="field"><label for="age">Age (optional; record units)</label><input id="age" placeholder="e.g. 8 years or 3 months"></div>
+<div class="field"><label for="weight">Weight (kg)</label><input id="weight" type="number" min="0.1" step="0.1" placeholder="e.g. 15" inputmode="decimal"></div>
+<div class="field"><label for="drug">Medication</label><select id="drug">
+<option>Levetiracetam</option><option>Brivaracetam</option><option>Sodium valproate</option><option>Phenobarbitone / phenobarbital</option><option>Pregabalin</option><option>Phenytoin</option><option>Fosphenytoin</option><option>Carbamazepine</option><option>Oxcarbazepine</option><option>Lacosamide</option><option>Lamotrigine</option><option>Topiramate</option><option>Clobazam</option><option>Clonazepam</option><option>Ethosuximide</option><option>Other</option>
+</select></div>
+<div class="field"><label for="indication">Indication / context</label><select id="indication"><option>Routine maintenance</option><option>Loading dose</option><option>Status epilepticus protocol</option><option>Other / clinician-defined</option></select></div>
+</section>
+<section class="card">
+<h2>2 · Enter a verified prescribed dose</h2>
+<p class="small">Select whether the dose entered is per administration or the total for one day. Confirm frequency from a trusted reference.</p>
+<div class="field"><label>Dose basis</label><div class="radio-row"><label><input type="radio" name="basis" value="perdose" checked> mg/kg per dose</label><label><input type="radio" name="basis" value="perday"> mg/kg per day</label><label><input type="radio" name="basis" value="fixed"> Fixed mg per dose</label></div></div>
+<div class="field"><label for="dose">Dose value (mg/kg or mg as selected)</label><input id="dose" type="number" min="0" step="any" placeholder="Enter dose from verified reference" inputmode="decimal"></div>
+<div class="field"><label for="frequency">Administrations per day</label><select id="frequency"><option value="1">1 (OD)</option><option value="2" selected>2 (BD)</option><option value="3">3 (TDS)</option><option value="4">4 (QID)</option><option value="6">6</option></select></div>
+<div class="field"><label for="maxDose">Maximum per dose (mg), if verified</label><input id="maxDose" type="number" min="0" step="any" placeholder="Optional safety limit" inputmode="decimal"></div>
+<div class="field"><label for="maxDaily">Maximum total daily dose (mg), if verified</label><input id="maxDaily" type="number" min="0" step="any" placeholder="Optional safety limit" inputmode="decimal"></div>
+</section>
+<section class="card">
+<h2>3 · Formulation / liquid conversion</h2>
+<div class="field"><label for="form">Formulation</label><select id="form"><option value="liquid">Oral liquid / solution</option><option value="tablet">Tablet / capsule</option><option value="iv">IV preparation</option><option value="none">Not applicable</option></select></div>
+<div class="field"><label for="concentration">Concentration (mg/mL)</label><input id="concentration" type="number" min="0" step="any" placeholder="Read from actual label" inputmode="decimal"></div>
+<div class="field"><label for="rounding">Display volume to</label><select id="rounding"><option value="2">2 decimal places</option><option value="1">1 decimal place</option><option value="3">3 decimal places</option></select></div>
+<p class="small">For tablets, use the strength on the actual pack and check whether the tablet can be split or crushed. Do not assume different brands or release formulations are interchangeable.</p>
+</section>
+<section class="card">
+<h2>4 · Clinical checks (manual)</h2>
+<div class="field"><label for="renal">Renal function</label><select id="renal"><option>Not assessed</option><option>Normal</option><option>Impaired</option><option>Dialysis</option></select></div>
+<div class="field"><label for="hepatic">Hepatic function</label><select id="hepatic"><option>Not assessed</option><option>Normal</option><option>Impaired</option></select></div>
+<div class="field"><label for="pregnancy">Pregnancy / reproductive risk relevant?</label><select id="pregnancy"><option>Not assessed</option><option>Not applicable</option><option>Yes — specialist risk review required</option></select></div>
+<div class="field"><label for="notes">Clinical notes (do not enter identifiable patient data)</label><input id="notes" placeholder="e.g. concomitant sedatives; dialysis schedule"></div>
+<p class="small">These fields do not automatically adjust the dose. Review the drug-specific reference and local protocol.</p>
+</section>
+<section class="card full">
+<h2>5 · Calculation</h2>
+<div class="actions"><button id="calculate">Calculate dose</button><button class="secondary" id="clear" type="button">Clear form</button><button class="secondary" id="copy" type="button">Copy summary</button></div>
+<div class="results" id="results" aria-live="polite">
+<h2 style="margin-bottom:12px">Calculation summary</h2>
+<div class="result-grid">
+<div class="metric"><span>Calculated dose per administration</span><strong id="rDose">—</strong></div>
+<div class="metric"><span>Total daily dose</span><strong id="rDaily">—</strong></div>
+<div class="metric"><span>Liquid volume per administration</span><strong id="rVolume">—</strong></div>
+<div class="metric"><span>Liquid volume per day</span><strong id="rVolumeDay">—</strong></div>
+</div>
+<div id="alerts"></div>
+<p class="small" id="summary"></p>
+</div>
+</section>
+<section class="card full">
+<details><summary>About this prototype and future drug library</summary><p class="small">No drug-specific dosing recommendations are preloaded. A production version should use a reviewed, version-controlled drug reference with citations, age/weight bands, indication-specific regimens, maximum doses, renal/hepatic rules, interaction checks, and clinical governance. Every rule should be reviewed by qualified clinicians and a pharmacist before release.</p></details>
+</section>
+</div>
+</main>
+<footer>NeuroDose is an educational calculation prototype, not a medical device or prescribing authority. It stores no patient records and does not send entered values to a server. Confirm all doses independently before clinical use.</footer>
+<script>
+const $=id=>document.getElementById(id);
+let lastSummary='';
+function n(id){return Number($(id).value)}
+function fmt(x,dp=2){return Number.isFinite(x)?x.toLocaleString('en-IN',{maximumFractionDigits:dp}):'—'}
+function calc(){
+ const w=n('weight'), dose=n('dose'), f=n('frequency'), conc=n('concentration');
+ const basis=document.querySelector('input[name="basis"]:checked').value;
+ if(!(w>0)||!(dose>0)||!(f>0)){alert('Enter a valid weight, prescribed dose and frequency.');return}
+ if(['liquid','iv'].includes($('form').value)&&conc<0){alert('Check concentration.');return}
+ let per=basis==='perdose'?w*dose:basis==='perday'?w*dose/f:dose;
+ let daily=per*f;
+ const max=n('maxDose'), maxDay=n('maxDaily'), dp=n('rounding');
+ $('rDose').textContent=fmt(per)+' mg';
+ $('rDaily').textContent=fmt(daily)+' mg/day';
+ $('rVolume').textContent=conc>0?fmt(per/conc,dp)+' mL':'Not calculated';
+ $('rVolumeDay').textContent=conc>0?fmt(daily/conc,dp)+' mL/day':'Not calculated';
+ let alerts=[];
+ if(max>0&&per>max)alerts.push('Calculated dose exceeds the maximum per-dose limit you entered. Do not proceed until reviewed.');
+ if(maxDay>0&&daily>maxDay)alerts.push('Calculated daily dose exceeds the maximum daily limit you entered. Do not proceed until reviewed.');
+ if($('renal').value==='Impaired'||$('renal').value==='Dialysis')alerts.push('Renal impairment/dialysis selected: verify drug-specific adjustment and timing with a current reference.');
+ if($('hepatic').value==='Impaired')alerts.push('Hepatic impairment selected: verify drug-specific adjustment with a current reference.');
+ if($('pregnancy').value.startsWith('Yes'))alerts.push('Pregnancy/reproductive risk review required; valproate has major fetal risks.');
+ if($('indication').value==='Status epilepticus protocol'||$('indication').value==='Loading dose')alerts.push('Loading/emergency calculation: verify the agent, protocol, administration rate, monitoring and maximum dose. This tool does not validate emergency regimens.');
+ if($('category').value==='Neonate')alerts.push('Neonatal dosing requires a neonatal-specific protocol and specialist verification.');
+ if(!alerts.length)alerts.push('Arithmetic calculated. This does not confirm that the prescribed regimen is appropriate.');
+ $('alerts').innerHTML=alerts.map(a=>'<div class="alert">'+a.replaceAll('&','&amp;').replaceAll('<','&lt;')+'</div>').join('');
+ lastSummary='NeuroDose calculation (verify independently)\\nPatient group: '+$('category').value+'\\nAge: '+($('age').value||'not entered')+'\\nWeight: '+w+' kg\\nDrug: '+$('drug').value+'\\nIndication: '+$('indication').value+'\\nDose basis: '+basis+'\\nEntered dose: '+dose+'\\nFrequency: '+f+' per day\\nCalculated dose per administration: '+fmt(per)+' mg\\nCalculated total daily dose: '+fmt(daily)+' mg/day\\nConcentration: '+(conc>0?conc+' mg/mL':'not entered')+'\\nVolume per administration: '+(conc>0?fmt(per/conc,dp)+' mL':'not calculated')+'\\nRenal: '+$('renal').value+'; hepatic: '+$('hepatic').value+'\\nClinical notes: '+($('notes').value||'none')+'\\nWarnings: '+alerts.join(' | ')+'\\nVerify against current prescribing information before use.';
+ $('summary').textContent='Drug: '+$('drug').value+' · '+$('indication').value+'. Dose basis: '+basis+'. Frequency: '+f+' times/day. All calculations are based only on the values entered.';
+ $('results').classList.add('show');
+}
+$('calculate').addEventListener('click',calc);
+$('clear').addEventListener('click',()=>{document.querySelectorAll('input').forEach(el=>{if(el.type==='radio')el.checked=el.value==='perdose';else el.value=''});$('category').selectedIndex=0;$('drug').selectedIndex=0;$('indication').selectedIndex=0;$('frequency').value='2';$('form').value='liquid';$('rounding').value='2';$('renal').selectedIndex=0;$('hepatic').selectedIndex=0;$('pregnancy').selectedIndex=0;$('results').classList.remove('show');lastSummary=''});
+$('copy').addEventListener('click',async()=>{if(!lastSummary){alert('Calculate first.');return}try{await navigator.clipboard.writeText(lastSummary);$('copy').textContent='Copied';setTimeout(()=>$('copy').textContent='Copy summary',1500)}catch(e){prompt('Copy this summary:',lastSummary)}});
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body></html>
